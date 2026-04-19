@@ -44,7 +44,7 @@ def split_cast(cast):
 
 # Load raw data with proper encoding
 try:
-    df = pd.read_csv("data/raw/movies_2025_raw.csv", encoding="utf-8-sig")
+    df = pd.read_csv("data/raw/movies_2025_all.csv", encoding="utf-8-sig")
 except FileNotFoundError:
     print("Error: Raw data file not found. Please run scraper first.")
     exit(1)
