@@ -41,43 +41,75 @@ response.raise_for_status()
 # Read tables from the HTML string
 tables = pd.read_html(response.text)
 
-correct_df = None
+all_movies = []
 
-# Find the correct table (the one with Director & Cast)
+# Process ALL tables that contain movie data
 for i, df in enumerate(tables):
-    cols = [str(c).lower() for c in df.columns]
+    # Clean column names
+    df.columns = [str(c).strip() for c in df.columns]
+    cols_lower = [str(c).lower() for c in df.columns]
     
-    if "director" in str(cols) and "cast" in str(cols):
-        print(f"Found correct table at index {i}")
-        print(f"Table columns: {list(df.columns)}")
-        correct_df = df
-        break
+    # Check if this table has movie data (flexible detection)
+    has_title = any("title" in col for col in cols_lower)
+    has_director = any("director" in col for col in cols_lower)
+    has_cast = any("cast" in col for col in cols_lower)
+    
+    # Skip tables without basic movie structure
+    if not (has_title and has_director and has_cast):
+        continue
+    
+    print(f"Processing table {i} with columns: {list(df.columns)}")
+    
+    # Find actual column names (case-insensitive)
+    title_col = None
+    director_col = None
+    cast_col = None
+    studio_col = None
+    
+    for col in df.columns:
+        col_lower = str(col).lower()
+        if "title" in col_lower and title_col is None:
+            title_col = col
+        elif "director" in col_lower and director_col is None:
+            director_col = col
+        elif "cast" in col_lower and cast_col is None:
+            cast_col = col
+        elif "studio" in col_lower and studio_col is None:
+            studio_col = col
+    
+    # Skip if essential columns missing
+    if title_col is None or director_col is None or cast_col is None:
+        continue
+    
+    # Select relevant columns
+    table_df = df[[title_col, director_col, cast_col]].copy()
+    if studio_col:
+        table_df[studio_col] = df[studio_col]
+    
+    # Rename columns consistently
+    table_df.columns = ["Name", "Director", "Cast"] + (["Studio"] if studio_col else [])
+    
+    # Remove junk rows
+    table_df = table_df[table_df["Name"].notna()]
+    table_df = table_df[~table_df["Name"].str.contains("JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC", case=False, na=False)]
+    table_df = table_df[~table_df["Name"].astype(str).str.isdigit()]
+    
+    # Add to collection
+    all_movies.append(table_df)
 
-# If not found
-if correct_df is None:
-    print("Available tables and their columns:")
-    for i, df in enumerate(tables):
-        print(f"Table {i}: {list(df.columns)}")
-    raise Exception("Correct table not found")
-
-# Clean column names
-correct_df.columns = [str(c).strip() for c in correct_df.columns]
-
-# Remove junk rows
-correct_df = correct_df[correct_df["Title"].notna()]
-correct_df = correct_df[~correct_df["Title"].str.contains("JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC", case=False, na=False)]
-correct_df = correct_df[~correct_df["Title"].astype(str).str.isdigit()]
-
-# Select correct columns
-df = correct_df[["Title", "Director", "Cast", "Studio (production house)"]].copy()
-df.columns = ["Name", "Director", "Cast", "Studio"]
+# Combine all tables
+if all_movies:
+    df = pd.concat(all_movies, ignore_index=True)
+    print(f"Combined {len(all_movies)} tables")
+else:
+    raise Exception("No valid movie tables found")
 
 # Remove duplicates
 df = df.drop_duplicates(subset=['Name'], keep='first')
 
 # Save raw data
 os.makedirs("data/raw", exist_ok=True)
-output_file = "data/raw/movies_2025_raw.csv"
+output_file = "data/raw/movies_2025_all.csv"
 df.to_csv(output_file, index=False, encoding="utf-8-sig")
 
 print("2025 Hindi movie scraping completed!")
