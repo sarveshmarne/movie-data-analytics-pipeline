@@ -33,6 +33,25 @@ def clean_text(text):
     
     return text.strip() if text.strip() else np.nan
 
+def separate_cast_names(cast_text):
+    """Separate concatenated cast names with proper spacing"""
+    if pd.isna(cast_text):
+        return np.nan
+    
+    text = str(cast_text).strip()
+    
+    # Add comma before capital letters that start new names (except first letter)
+    # This handles cases like "Actor1 Actor2 Actor3" -> "Actor1, Actor2, Actor3"
+    text = re.sub(r'([a-z])([A-Z][a-z]+)', r'\1, \2', text)
+    
+    # Handle cases where there might be no space between names
+    text = re.sub(r'([a-z])([A-Z])', r'\1, \2', text)
+    
+    # Clean up any double commas
+    text = re.sub(r',+', ', ', text)
+    
+    return text.strip()
+
 def split_cast(cast):
     """Split cast into Cast_1, Cast_2, Cast_3 columns"""
     if pd.isna(cast):
@@ -44,7 +63,7 @@ def split_cast(cast):
 
 # Load raw data with proper encoding
 try:
-    df = pd.read_csv("data/raw/movies_2025_all.csv", encoding="utf-8-sig")
+    df = pd.read_csv("data/raw/movies_2025_fixed.csv", encoding="utf-8-sig")
 except FileNotFoundError:
     print("Error: Raw data file not found. Please run scraper first.")
     exit(1)
@@ -58,10 +77,15 @@ print(df.head(10).to_string(index=False))
 df_clean = df.copy()
 
 # Apply text cleaning to basic columns
-basic_columns = ['Name', 'Director', 'Cast', 'Studio']
+basic_columns = ['Name', 'Director', 'Studio']
 for col in basic_columns:
     if col in df_clean.columns:
         df_clean[col] = df_clean[col].apply(clean_text)
+
+# Apply special cast cleaning to separate concatenated names
+if 'Cast' in df_clean.columns:
+    df_clean['Cast'] = df_clean['Cast'].apply(separate_cast_names)
+    df_clean['Cast'] = df_clean['Cast'].apply(clean_text)
 
 # Data quality filters
 print(f"\nBefore filtering: {len(df_clean)} rows")
