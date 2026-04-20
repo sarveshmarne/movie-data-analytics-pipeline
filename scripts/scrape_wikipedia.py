@@ -81,13 +81,13 @@ for i, df in enumerate(tables):
     if title_col is None or director_col is None or cast_col is None:
         continue
     
-    # Select relevant columns
-    table_df = df[[title_col, director_col, cast_col]].copy()
+    # Select relevant columns with proper separator extraction
+    table_df = pd.DataFrame()
+    table_df["Name"] = df[title_col].apply(lambda x: str(x).strip())
+    table_df["Director"] = df[director_col].apply(lambda x: str(x).strip())
+    table_df["Cast"] = df[cast_col].apply(lambda x: str(x).strip())
     if studio_col:
-        table_df[studio_col] = df[studio_col]
-    
-    # Rename columns consistently
-    table_df.columns = ["Name", "Director", "Cast"] + (["Studio"] if studio_col else [])
+        table_df["Studio"] = df[studio_col].apply(lambda x: str(x).strip())
     
     # Remove junk rows
     table_df = table_df[table_df["Name"].notna()]
@@ -109,7 +109,7 @@ df = df.drop_duplicates(subset=['Name'], keep='first')
 
 # Save raw data
 os.makedirs("data/raw", exist_ok=True)
-output_file = "data/raw/movies_2025_all.csv"
+output_file = "data/raw/movies_2025_fixed.csv"
 df.to_csv(output_file, index=False, encoding="utf-8-sig")
 
 print("2025 Hindi movie scraping completed!")
