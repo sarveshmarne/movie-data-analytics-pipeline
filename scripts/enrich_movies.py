@@ -118,6 +118,12 @@ if __name__ == "__main__":
     df = pd.read_json("data/processed/movies_cleaned_2025_hindi.json")
     print(f"Loaded {len(df)} movies for enrichment")
     
+    # Add Year and Language columns if they don't exist
+    if 'Year' not in df.columns:
+        df['Year'] = 2025
+    if 'Language' not in df.columns:
+        df['Language'] = 'hindi'
+    
     # Enrich
     enriched_df = enrich_dataframe(df)
     
