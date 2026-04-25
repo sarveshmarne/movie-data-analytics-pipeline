@@ -36,25 +36,25 @@
 - [x] Batch pd.to_numeric()
 
 ### Step 7: scripts/enhanced_enrichment.py
-- [ ] Move import random to top level
-- [ ] Replace hardcoded 132 with len(df)
-- [ ] Vectorize mock data generation
-- [ ] Remove unused imports
+- [x] Move import random to top level
+- [x] Replace hardcoded 132 with len(df)
+- [x] Vectorize mock data generation
+- [x] Remove unused imports
 
 ### Step 8: scripts/multi_year_pipeline.py
-- [ ] Add missing import numpy as np
-- [ ] Remove unused imports (BeautifulSoup, datetime, json)
-- [ ] Move import random to top level
-- [ ] Vectorize string operations
-- [ ] Vectorize cast split
-- [ ] Use pd.concat with join='outer' instead of manual alignment
-- [ ] General regex optimizations
+- [x] Add missing import numpy as np
+- [x] Remove unused imports (BeautifulSoup, datetime, json)
+- [x] Move import random to top level
+- [x] Vectorize string operations
+- [x] Vectorize cast split
+- [x] Use pd.concat with join='outer' instead of manual alignment
+- [x] General regex optimizations
 
 ### Step 9: scripts/sacnilk_scraper.py
-- [ ] Pre-compile regex patterns at module level
-- [ ] Optimize enrich_with_sacnilk() loop structure
+- [x] Pre-compile regex patterns at module level
+- [x] Optimize enrich_with_sacnilk() loop structure
 
 ### Verification
-- [ ] Check all files for syntax errors
-- [ ] Confirm no behavioral changes to output
+- [x] Check all files for syntax errors
+- [x] Confirm no behavioral changes to output
 
