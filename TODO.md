@@ -1,44 +1,60 @@
-# Movie Data Pipeline - Data Enrichment TODO
+# Movie Data Pipeline - Code Efficiency Optimization TODO
 
-Current Plan: Implement Data Enrichment using TMDb API
+## Plan Approved - Implementing Changes
 
-## TODO Steps:
+### Step 1: main_pipeline.py
+- [x] Replace os.system() with subprocess.run(check=True)
+- [x] Add try/except for meaningful error handling
 
-### 1. **Setup Dependencies** ✅ 
-- ✅ Create requirements.txt
-- ✅ Create .env.example
-- ✅ Install packages: `pip install -r requirements.txt`
+### Step 2: scripts/scrape_wikipedia.py
+- [x] Remove dead is_valid_movie_row() function
+- [x] Vectorize .apply(lambda x: str(x).strip()) → .astype(str).str.strip()
+- [x] Build table_df via dict instead of empty DataFrame
+- [x] Pre-compile regex patterns
 
+### Step 3: scripts/clean_movies_data.py
+- [x] Combine redundant regex in clean_text() and separate_cast_names()
+- [x] Replace cast_split.apply(lambda) with .str.split(expand=True)
+- [x] Remove unnecessary df.copy()
+- [x] Chain pandas operations
 
-### 2. **Configuration** 
-- [ ] Create config.py or .env for TMDb API key
+### Step 4: scripts/enrich_movies.py
+- [x] Remove unused fuzz and json imports
+- [x] Fix input path from .json to .csv
+- [x] Minor loop restructuring
 
-### 3. **Generate Base Data** ✅
-- ✅ Scrape & clean fixed (monthly parsing + validation filters)
-- ✅ 132 high-quality 2025 Hindi movies ready (misplaced data fixed!)"
+### Step 5: scripts/simple_enrich.py
+- [x] Vectorize column assignment
+- [x] Simplify column reordering
 
-### 4. **Implement Enrichment Script** ✅
-- ✅ Create `scripts/enrich_movies.py`
-- ✅ Implement TMDb API integration (search + details)
-- ✅ Add fuzzy matching for movie names (direct hi-IN, fallback en-US)
-- ✅ Handle missing matches and rate limits (sleep 0.5s)
+### Step 6: scripts/standardize_data.py
+- [x] Vectorize convert_currency_to_numeric()
+- [x] Vectorize standardize_verdict()
+- [x] Vectorize split_genres()
+- [x] Vectorize calculate_success_category()
+- [x] Remove unnecessary df.copy()
+- [x] Batch pd.to_numeric()
 
-### 5. **Test & Validate**
-- [ ] Test on sample movies
-- [ ] Verify new columns: imdb_rating, genres, budget, etc.
-- [ ] Save to `data/enriched/`
+### Step 7: scripts/enhanced_enrichment.py
+- [ ] Move import random to top level
+- [ ] Replace hardcoded 132 with len(df)
+- [ ] Vectorize mock data generation
+- [ ] Remove unused imports
 
-### 6. **Pipeline Integration** ✅
-- ✅ Create main_pipeline.py chaining all steps
-- ✅ Add logging and error handling (os.system + API key check)
+### Step 8: scripts/multi_year_pipeline.py
+- [ ] Add missing import numpy as np
+- [ ] Remove unused imports (BeautifulSoup, datetime, json)
+- [ ] Move import random to top level
+- [ ] Vectorize string operations
+- [ ] Vectorize cast split
+- [ ] Use pd.concat with join='outer' instead of manual alignment
+- [ ] General regex optimizations
 
-### 7. **Documentation** ✅
-- ✅ Update README.md (full pipeline docs + sample data)
-- ✅ Add data schema docs (in README)
+### Step 9: scripts/sacnilk_scraper.py
+- [ ] Pre-compile regex patterns at module level
+- [ ] Optimize enrich_with_sacnilk() loop structure
 
-**Next Steps:**
-1. Get TMDb API key & setup .env
-2. Run `python main_pipeline.py`
-3. Proceed to SQL + Viz stages
+### Verification
+- [ ] Check all files for syntax errors
+- [ ] Confirm no behavioral changes to output
 
-Progress will be updated as steps complete.
