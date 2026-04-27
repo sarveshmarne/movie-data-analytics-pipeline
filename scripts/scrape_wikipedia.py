@@ -1,39 +1,22 @@
 import pandas as pd
 import os
 import requests
+import re
 
-def is_valid_movie_row(name):
-    """Filter out invalid rows for 2025 data"""
-    if not name or not name.strip():
-        return False
-    
-    name = name.strip()
-    
-    # Skip month headers
-    if name.upper() in ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']:
-        return False
-    
-    # Skip numeric-only rows
-    if name.isdigit():
-        return False
-    
-    # Skip common header/footer text
-    invalid_texts = ['title', 'ref.', 'opening', 'rank', 'none', 'director', 'cast', 'studio']
-    if name.lower() in invalid_texts:
-        return False
-    
-    # Skip very short names (likely junk)
-    if len(name) < 3:
-        return False
-    
-    return True
+# Pre-compile regex patterns for performance
+_MONTH_RE = re.compile(
+    r"JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC", flags=re.IGNORECASE
+)
 
 url = "https://en.wikipedia.org/wiki/List_of_Hindi_films_of_2025"
 
 print("Reading tables from Wikipedia...")
 # Download HTML first with headers to avoid 403 error
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    )
 }
 response = requests.get(url, headers=headers)
 response.raise_for_status()
@@ -48,24 +31,24 @@ for i, df in enumerate(tables):
     # Clean column names
     df.columns = [str(c).strip() for c in df.columns]
     cols_lower = [str(c).lower() for c in df.columns]
-    
+
     # Check if this table has movie data (flexible detection)
     has_title = any("title" in col for col in cols_lower)
     has_director = any("director" in col for col in cols_lower)
     has_cast = any("cast" in col for col in cols_lower)
-    
+
     # Skip tables without basic movie structure
     if not (has_title and has_director and has_cast):
         continue
-    
+
     print(f"Processing table {i} with columns: {list(df.columns)}")
-    
+
     # Find actual column names (case-insensitive)
     title_col = None
     director_col = None
     cast_col = None
     studio_col = None
-    
+
     for col in df.columns:
         col_lower = str(col).lower()
         if "title" in col_lower and title_col is None:
@@ -76,24 +59,27 @@ for i, df in enumerate(tables):
             cast_col = col
         elif "studio" in col_lower and studio_col is None:
             studio_col = col
-    
+
     # Skip if essential columns missing
     if title_col is None or director_col is None or cast_col is None:
         continue
-    
-    # Select relevant columns with proper separator extraction
-    table_df = pd.DataFrame()
-    table_df["Name"] = df[title_col].apply(lambda x: str(x).strip())
-    table_df["Director"] = df[director_col].apply(lambda x: str(x).strip())
-    table_df["Cast"] = df[cast_col].apply(lambda x: str(x).strip())
+
+    # Build table via dict — faster and cleaner than empty DataFrame + assignment
+    table_data = {
+        "Name": df[title_col].astype(str).str.strip(),
+        "Director": df[director_col].astype(str).str.strip(),
+        "Cast": df[cast_col].astype(str).str.strip(),
+    }
     if studio_col:
-        table_df["Studio"] = df[studio_col].apply(lambda x: str(x).strip())
-    
-    # Remove junk rows
+        table_data["Studio"] = df[studio_col].astype(str).str.strip()
+
+    table_df = pd.DataFrame(table_data)
+
+    # Remove junk rows using vectorized operations
     table_df = table_df[table_df["Name"].notna()]
-    table_df = table_df[~table_df["Name"].str.contains("JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC", case=False, na=False)]
-    table_df = table_df[~table_df["Name"].astype(str).str.isdigit()]
-    
+    table_df = table_df[~table_df["Name"].str.contains(_MONTH_RE, na=False)]
+    table_df = table_df[~table_df["Name"].str.isdigit()]
+
     # Add to collection
     all_movies.append(table_df)
 
@@ -105,7 +91,7 @@ else:
     raise Exception("No valid movie tables found")
 
 # Remove duplicates
-df = df.drop_duplicates(subset=['Name'], keep='first')
+df = df.drop_duplicates(subset=["Name"], keep="first")
 
 # Save raw data
 os.makedirs("data/raw", exist_ok=True)
@@ -116,3 +102,4 @@ print("2025 Hindi movie scraping completed!")
 print(f"Found {len(df)} unique movies")
 print("\nSample raw data:")
 print(df.head(10).to_string(index=False))
+
