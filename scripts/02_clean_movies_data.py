@@ -14,6 +14,7 @@ _RE_CAMEL = re.compile(r"([a-z])([A-Z][a-z]+)")
 _RE_CAMEL_SIMPLE = re.compile(r"([a-z])([A-Z])")
 _RE_DOUBLE_COMMA = re.compile(r",+")
 
+
 def clean_text(text):
     """Clean text by removing unwanted characters and formatting"""
     if pd.isna(text):
@@ -35,6 +36,15 @@ def clean_text(text):
     return text.strip() if text.strip() else np.nan
 
 
+def first_value(text):
+    """Return the first comma-separated value from a cleaned text field."""
+    if pd.isna(text):
+        return np.nan
+
+    parts = [part.strip() for part in str(text).split(",") if part.strip()]
+    return parts[0] if parts else np.nan
+
+
 def separate_cast_names(cast_text):
     """Separate concatenated cast names with proper spacing"""
     if pd.isna(cast_text):
@@ -48,6 +58,15 @@ def separate_cast_names(cast_text):
     text = _RE_DOUBLE_COMMA.sub(", ", text)
 
     return text.strip()
+
+
+def cast_name_at(cast_text, index):
+    """Return one cast name by position after splitting the cleaned cast text."""
+    if pd.isna(cast_text):
+        return np.nan
+
+    names = [name.strip() for name in str(cast_text).split(",") if name.strip()]
+    return names[index] if len(names) > index else np.nan
 
 
 # Load raw data with proper encoding
@@ -80,6 +99,9 @@ for col in basic_columns:
     if col in df.columns:
         df[col] = df[col].apply(clean_text)
 
+if "Studio" in df.columns:
+    df["Studio"] = df["Studio"].apply(first_value)
+
 # Apply special cast cleaning to separate concatenated names
 if "Cast" in df.columns:
     df["Cast"] = df["Cast"].apply(separate_cast_names).apply(clean_text)
@@ -92,23 +114,23 @@ df = df.dropna(subset=["Name"])
 df = df[df["Name"].str.len() > 2]
 
 # Remove exact duplicates based on movie name
+duplicate_count = df.duplicated(subset=["Name"], keep="first").sum()
+if duplicate_count:
+    print(f"Removing {duplicate_count} duplicate movie rows")
+else:
+    print("No duplicate movie rows found")
 df = df.drop_duplicates(subset=["Name"], keep="first")
 
 print(f"After filtering: {len(df)} rows")
 
 # Vectorized cast split — no Python loop overhead
-cast_split = df["Cast"].astype(str).str.split(",", n=2, expand=True)
-df["Cast_1"] = cast_split[0].replace("nan", np.nan).replace("", np.nan)
-df["Cast_2"] = cast_split[1].replace("nan", np.nan).replace("", np.nan)
-df["Cast_3"] = cast_split[2].replace("nan", np.nan).replace("", np.nan)
-
-# Add Year and Language columns
-df["Year"] = 2025
-df["Language"] = "hindi"
+df["Cast_1"] = df["Cast"].apply(cast_name_at, index=0)
+df["Cast_2"] = df["Cast"].apply(cast_name_at, index=1)
+df["Cast_3"] = df["Cast"].apply(cast_name_at, index=2)
 
 # Final column order as specified
 final_columns = [
-    "Year", "Name", "Director", "Cast_1", "Cast_2", "Cast_3", "Studio", "Language"
+    "Name", "Director", "Cast_1", "Cast_2", "Cast_3", "Studio"
 ]
 df = df[final_columns]
 
