@@ -51,11 +51,20 @@ def separate_cast_names(cast_text):
 
 
 # Load raw data with proper encoding
+raw_data_file = "data/raw/movies_2025_complete.csv"
+fallback_raw_data_file = "data/raw/movies_2025_fixed.csv"
+
 try:
-    df = pd.read_csv("data/raw/movies_2025_fixed.csv", encoding="utf-8-sig")
+    df = pd.read_csv(raw_data_file, encoding="utf-8-sig")
 except FileNotFoundError:
-    print("Error: Raw data file not found. Please run scraper first.")
-    exit(1)
+    try:
+        df = pd.read_csv(fallback_raw_data_file, encoding="utf-8-sig")
+    except FileNotFoundError:
+        print(
+            "Error: Raw data file not found. Please run scraper first. "
+            f"Expected {raw_data_file}."
+        )
+        exit(1)
 
 print("Raw data shape:", df.shape)
 print("Raw data columns:", list(df.columns))

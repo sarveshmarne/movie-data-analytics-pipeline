@@ -5,8 +5,9 @@ import re
 
 # Pre-compile regex patterns for performance
 _MONTH_RE = re.compile(
-    r"JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC", flags=re.IGNORECASE
+    r"\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b", flags=re.IGNORECASE
 )
+
 
 url = "https://en.wikipedia.org/wiki/List_of_Hindi_films_of_2025"
 
@@ -64,19 +65,18 @@ for i, df in enumerate(tables):
     if title_col is None or director_col is None or cast_col is None:
         continue
 
-    # Build table via dict — faster and cleaner than empty DataFrame + assignment
-    table_data = {
-        "Name": df[title_col].astype(str).str.strip(),
-        "Director": df[director_col].astype(str).str.strip(),
-        "Cast": df[cast_col].astype(str).str.strip(),
-    }
+    # Select relevant columns with proper separator extraction
+    table_df = pd.DataFrame()
+    table_df["Name"] = df[title_col].apply(lambda x: str(x).strip())
+    table_df["Director"] = df[director_col].apply(lambda x: str(x).strip())
+    table_df["Cast"] = df[cast_col].apply(lambda x: str(x).strip())
     if studio_col:
-        table_data["Studio"] = df[studio_col].astype(str).str.strip()
-
-    table_df = pd.DataFrame(table_data)
+        table_df["Studio"] = df[studio_col].apply(lambda x: str(x).strip())
 
     # Remove junk rows using vectorized operations
-    table_df = table_df[table_df["Name"].notna()]
+    table_df = table_df.dropna(subset=["Name"])
+    table_df = table_df[table_df["Name"] != "nan"]
+    table_df = table_df[table_df["Name"] != ""]
     table_df = table_df[~table_df["Name"].str.contains(_MONTH_RE, na=False)]
     table_df = table_df[~table_df["Name"].str.isdigit()]
 
@@ -91,11 +91,12 @@ else:
     raise Exception("No valid movie tables found")
 
 # Remove duplicates
+df = df.dropna(subset=["Name"])
 df = df.drop_duplicates(subset=["Name"], keep="first")
 
 # Save raw data
 os.makedirs("data/raw", exist_ok=True)
-output_file = "data/raw/movies_2025_fixed.csv"
+output_file = "data/raw/movies_2025_complete.csv"
 df.to_csv(output_file, index=False, encoding="utf-8-sig")
 
 print("2025 Hindi movie scraping completed!")
