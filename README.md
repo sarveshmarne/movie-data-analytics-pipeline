@@ -11,7 +11,7 @@ End-to-end pipeline for collecting, cleaning, **enriching**, and analyzing Hindi
 
 ## 📁 Data Flow
 ```
-Wikipedia → raw → processed (133 movies) → enriched → SQL → Dashboard
+Wikipedia → 01_raw → 02_processed (133 movies) → 03_enriched → SQL → Dashboard
 ```
 
 ## 🛠 Tech Stack
