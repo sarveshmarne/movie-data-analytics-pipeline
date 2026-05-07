@@ -83,4 +83,4 @@ if __name__ == "__main__":
     run_step("Enrich with TMDb", SCRIPTS_DIR / "04_enrich_movies.py")
 
     print("Pipeline Complete!", flush=True)
-    print("Check data/enriched/movies_enriched_2025_hindi.csv", flush=True)
+    print("Check data/03_enriched/movies_enriched_2025_hindi.csv", flush=True)
