@@ -95,8 +95,8 @@ df = df.dropna(subset=["Name"])
 df = df.drop_duplicates(subset=["Name"], keep="first")
 
 # Save raw data
-os.makedirs("data/raw", exist_ok=True)
-output_file = "data/raw/movies_2025_complete.csv"
+os.makedirs("data/01_raw", exist_ok=True)
+output_file = "data/01_raw/movies_2025_complete.csv"
 df.to_csv(output_file, index=False, encoding="utf-8-sig")
 
 print("2025 Hindi movie scraping completed!")
