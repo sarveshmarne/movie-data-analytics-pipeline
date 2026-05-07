@@ -4,6 +4,22 @@ import os
 import time
 from dotenv import load_dotenv
 
+
+def add_year_language(df, year=2025, language="hindi"):
+    """Add pipeline metadata columns for the enriched dataset."""
+    if "Year" not in df.columns:
+        df.insert(0, "Year", year)
+    else:
+        df["Year"] = df["Year"].fillna(year)
+
+    if "Language" not in df.columns:
+        df["Language"] = language
+    else:
+        df["Language"] = df["Language"].fillna(language)
+
+    return df
+
+
 # Load environment variables
 load_dotenv()
 
@@ -12,6 +28,7 @@ if not API_KEY:
     print("⚠️ No TMDb_API_KEY found. Skipping enrichment (add to .env for full features).")
     os.makedirs("data/enriched", exist_ok=True)
     df_base = pd.read_csv("data/processed/movies_2025_clean.csv", encoding="utf-8-sig")
+    df_base = add_year_language(df_base)
     df_base.to_csv("data/enriched/movies_enriched_2025_hindi.csv", index=False, encoding="utf-8-sig")
     print("✅ Demo enrichment complete - base data copied to enriched CSV!")
     exit()
@@ -123,11 +140,8 @@ def enrich_dataframe(df):
 if __name__ == "__main__":
     # Load cleaned data
     df = pd.read_csv("data/processed/movies_2025_clean.csv", encoding="utf-8-sig")
+    df = add_year_language(df)
     print(f"Loaded {len(df)} movies for enrichment")
-
-    # Add Year and Language columns if they don't exist
-    df["Year"] = df.get("Year", 2025)
-    df["Language"] = df.get("Language", "hindi")
 
     # Enrich
     enriched_df = enrich_dataframe(df)
