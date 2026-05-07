@@ -243,9 +243,9 @@ def enrich_year_data(df, year):
 def save_raw_data(df, year):
     """Save raw data to Excel format"""
     filename = f"movies_{year}_raw.xlsx"
-    filepath = f"data/raw/{filename}"
+    filepath = f"data/01_raw/{filename}"
 
-    os.makedirs("data/raw", exist_ok=True)
+    os.makedirs("data/01_raw", exist_ok=True)
     df.to_excel(filepath, index=False, engine="openpyxl")
 
     print(f"Raw data saved to: {filepath}")
@@ -255,9 +255,9 @@ def save_raw_data(df, year):
 def save_clean_data(df, year):
     """Save clean data to Excel format"""
     filename = f"movies_{year}_clean.xlsx"
-    filepath = f"data/processed/{filename}"
+    filepath = f"data/02_processed/{filename}"
 
-    os.makedirs("data/processed", exist_ok=True)
+    os.makedirs("data/02_processed", exist_ok=True)
     df.to_excel(filepath, index=False, engine="openpyxl")
 
     print(f"Clean data saved to: {filepath}")
@@ -348,11 +348,10 @@ def run_multi_year_pipeline():
     print("\n=== Pipeline Complete ===")
     print("Multi-year dataset successfully created!")
     print("Files created:")
-    print("- data/raw/movies_2024_raw.xlsx")
-    print("- data/processed/movies_2024_clean.xlsx")
+    print("- data/01_raw/movies_2024_raw.xlsx")
+    print("- data/02_processed/movies_2024_clean.xlsx")
     print("- data/final/movies_2024_2025_final.xlsx")
 
 
 if __name__ == "__main__":
     run_multi_year_pipeline()
-

@@ -7,7 +7,7 @@ def simple_enrich():
 
     # Load cleaned CSV data
     try:
-        df = pd.read_csv("data/processed/movies_2025_clean.csv", encoding="utf-8-sig")
+        df = pd.read_csv("data/02_processed/movies_2025_clean.csv", encoding="utf-8-sig")
         print(f"Loaded {len(df)} movies from cleaned CSV")
     except FileNotFoundError:
         print("Error: Cleaned data file not found. Please run cleaning step first.")
@@ -24,8 +24,8 @@ def simple_enrich():
     df = df[cols]
 
     # Save enriched data
-    os.makedirs("data/enriched", exist_ok=True)
-    df.to_csv("data/enriched/movies_enriched_2025_hindi.csv", index=False, encoding="utf-8-sig")
+    os.makedirs("data/03_enriched", exist_ok=True)
+    df.to_csv("data/03_enriched/movies_enriched_2025_hindi.csv", index=False, encoding="utf-8-sig")
 
     print("Simple enrichment complete!")
     print(f"Saved {len(df)} movies to enriched CSV")
@@ -38,4 +38,3 @@ def simple_enrich():
 
 if __name__ == "__main__":
     simple_enrich()
-

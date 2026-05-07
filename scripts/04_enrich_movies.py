@@ -26,10 +26,10 @@ load_dotenv()
 API_KEY = os.getenv("TMDb_API_KEY")
 if not API_KEY:
     print("⚠️ No TMDb_API_KEY found. Skipping enrichment (add to .env for full features).")
-    os.makedirs("data/enriched", exist_ok=True)
-    df_base = pd.read_csv("data/processed/movies_2025_clean.csv", encoding="utf-8-sig")
+    os.makedirs("data/03_enriched", exist_ok=True)
+    df_base = pd.read_csv("data/02_processed/movies_2025_clean.csv", encoding="utf-8-sig")
     df_base = add_year_language(df_base)
-    df_base.to_csv("data/enriched/movies_enriched_2025_hindi.csv", index=False, encoding="utf-8-sig")
+    df_base.to_csv("data/03_enriched/movies_enriched_2025_hindi.csv", index=False, encoding="utf-8-sig")
     print("✅ Demo enrichment complete - base data copied to enriched CSV!")
     exit()
 
@@ -139,7 +139,7 @@ def enrich_dataframe(df):
 
 if __name__ == "__main__":
     # Load cleaned data
-    df = pd.read_csv("data/processed/movies_2025_clean.csv", encoding="utf-8-sig")
+    df = pd.read_csv("data/02_processed/movies_2025_clean.csv", encoding="utf-8-sig")
     df = add_year_language(df)
     print(f"Loaded {len(df)} movies for enrichment")
 
@@ -147,9 +147,9 @@ if __name__ == "__main__":
     enriched_df = enrich_dataframe(df)
 
     # Save as CSV
-    os.makedirs("data/enriched", exist_ok=True)
+    os.makedirs("data/03_enriched", exist_ok=True)
     enriched_df.to_csv(
-        "data/enriched/movies_enriched_2025_hindi.csv", index=False, encoding="utf-8-sig"
+        "data/03_enriched/movies_enriched_2025_hindi.csv", index=False, encoding="utf-8-sig"
     )
 
     print("✅ Enrichment complete as CSV!")

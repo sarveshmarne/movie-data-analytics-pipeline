@@ -59,7 +59,7 @@ def standardize_dataset():
 
     print("Loading enriched data...")
     try:
-        df = pd.read_csv("data/enriched/movies_enriched_2025_hindi.csv", encoding="utf-8-sig")
+        df = pd.read_csv("data/03_enriched/movies_enriched_2025_hindi.csv", encoding="utf-8-sig")
         print(f"Loaded {len(df)} movies")
     except FileNotFoundError:
         print("Error: Enriched data file not found. Please run enrichment step first.")
@@ -169,4 +169,3 @@ def standardize_dataset():
 
 if __name__ == "__main__":
     standardize_dataset()
-

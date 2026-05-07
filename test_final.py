@@ -1,6 +1,6 @@
 import pandas as pd
 
-current_df = pd.read_csv('data/raw/movies_2025_complete.csv')
+current_df = pd.read_csv('data/01_raw/movies_2025_complete.csv')
 missing_movies = ['Sunny Sanskari Ki Tulsi Kumari', 'Badass Ravi Kumar']
 
 for movie in missing_movies:

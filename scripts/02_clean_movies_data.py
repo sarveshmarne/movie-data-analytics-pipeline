@@ -70,8 +70,8 @@ def cast_name_at(cast_text, index):
 
 
 # Load raw data with proper encoding
-raw_data_file = "data/raw/movies_2025_complete.csv"
-fallback_raw_data_file = "data/raw/movies_2025_fixed.csv"
+raw_data_file = "data/01_raw/movies_2025_complete.csv"
+fallback_raw_data_file = "data/01_raw/movies_2025_fixed.csv"
 
 try:
     df = pd.read_csv(raw_data_file, encoding="utf-8-sig")
@@ -143,8 +143,8 @@ print("\nSample movies with director and cast:")
 print(df[["Name", "Director", "Cast_1"]].head(10).to_string(index=False))
 
 # Save cleaned data in CSV format with proper encoding
-os.makedirs("data/processed", exist_ok=True)
-output_file = "data/processed/movies_2025_clean.csv"
+os.makedirs("data/02_processed", exist_ok=True)
+output_file = "data/02_processed/movies_2025_clean.csv"
 df.to_csv(output_file, index=False, encoding="utf-8-sig")
 
 print(f"\n Cleaned data saved to: {output_file}")
