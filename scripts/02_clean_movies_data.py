@@ -150,4 +150,3 @@ df.to_csv(output_file, index=False, encoding="utf-8-sig")
 print(f"\n Cleaned data saved to: {output_file}")
 print(f"Final dataset: {len(df)} movies")
 print(f"Columns: {list(df.columns)}")
-
