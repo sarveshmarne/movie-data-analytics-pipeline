@@ -2,10 +2,18 @@ import pandas as pd
 import numpy as np
 import re
 import os
+import ast
 
 # Pre-compile regex patterns
 _RE_CURRENCY_CLEAN = re.compile(r"[^\d.\s]")
 _RE_NUMBER_EXTRACT = re.compile(r"(\d+\.?\d*)")
+
+
+def column_or_default(df, column, default=0):
+    """Return a dataframe column or an index-aligned default series."""
+    if column in df.columns:
+        return df[column]
+    return pd.Series(default, index=df.index)
 
 
 def convert_currency_to_numeric(value):
@@ -54,6 +62,28 @@ def standardize_verdict(verdict):
         return "Average"
 
 
+def split_genre_value(value):
+    """Split genre data stored as a comma string or Python-list style string."""
+    if pd.isna(value) or value == "":
+        return pd.NA, pd.NA
+
+    if isinstance(value, (list, tuple)):
+        genres = list(value)
+    else:
+        text = str(value).strip()
+        try:
+            parsed = ast.literal_eval(text)
+            genres = parsed if isinstance(parsed, (list, tuple)) else [text]
+        except (ValueError, SyntaxError):
+            genres = re.split(r"[,;]| and | & ", text)
+
+    genres = [str(genre).strip() for genre in genres if str(genre).strip()]
+    return (
+        genres[0] if len(genres) > 0 else pd.NA,
+        genres[1] if len(genres) > 1 else pd.NA,
+    )
+
+
 def standardize_dataset():
     """Main function to standardize and engineer features"""
 
@@ -69,22 +99,31 @@ def standardize_dataset():
 
     # Step 1: Standardize Budget and Box Office
     print("Converting currency values...")
-    df["Budget"] = df.get("Budget", pd.Series(0, index=df.index)).apply(convert_currency_to_numeric)
-    df["Box_Office"] = df.get("Box_Office", pd.Series(0, index=df.index)).apply(convert_currency_to_numeric)
+    budget_source = column_or_default(df, "Budget")
+    if "budget" in df.columns:
+        budget_source = budget_source.mask(budget_source.isna() | (budget_source == 0), df["budget"])
+    df["Budget"] = budget_source.apply(convert_currency_to_numeric)
+    df["Box_Office"] = column_or_default(df, "Box_Office").apply(convert_currency_to_numeric)
 
     # Step 2: Standardize IMDb Rating
     print("Standardizing IMDb ratings...")
-    df["IMDb"] = pd.to_numeric(df.get("imdb_rating", 0), errors="coerce").fillna(0.0)
+    df["IMDb"] = pd.to_numeric(column_or_default(df, "imdb_rating"), errors="coerce").fillna(0.0)
 
     # Step 3: Split Genres (vectorized)
     print("Processing genres...")
-    genre_split = df.get("genres", "").astype(str).str.split(r"[,;]| and | & ", n=1, expand=True, regex=True)
-    df["Genre_1"] = genre_split[0].replace("nan", np.nan).replace("", np.nan).str.strip()
-    df["Genre_2"] = genre_split[1].replace("nan", np.nan).replace("", np.nan).str.strip()
+    if "Genre_1" not in df.columns:
+        df["Genre_1"] = pd.NA
+    if "Genre_2" not in df.columns:
+        df["Genre_2"] = pd.NA
+
+    if "genres" in df.columns:
+        split_genres = df["genres"].apply(split_genre_value)
+        df["Genre_1"] = df["Genre_1"].fillna(split_genres.str[0])
+        df["Genre_2"] = df["Genre_2"].fillna(split_genres.str[1])
 
     # Step 4: Standardize Verdict
     print("Standardizing verdict...")
-    df["Verdict"] = df.get("Verdict", "Average").apply(standardize_verdict)
+    df["Verdict"] = column_or_default(df, "Verdict", "Average").apply(standardize_verdict)
 
     # Step 5: Create new features (vectorized)
     print("Creating new features...")
