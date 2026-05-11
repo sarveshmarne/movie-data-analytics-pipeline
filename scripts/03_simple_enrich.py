@@ -25,7 +25,15 @@ def simple_enrich():
 
     # Save enriched data
     os.makedirs("data/03_enriched", exist_ok=True)
-    df.to_csv("data/03_enriched/movies_enriched_2025_hindi.csv", index=False, encoding="utf-8-sig")
+    output_file = "data/03_enriched/movies_enriched_2025_hindi.csv"
+    try:
+        df.to_csv(output_file, index=False, encoding="utf-8-sig")
+    except PermissionError:
+        print(
+            f"\nError: Cannot save {output_file} because the file is open or locked.\n"
+            "Close it in Excel, Power BI, VS Code preview, or any other app, then run this script again."
+        )
+        return
 
     print("Simple enrichment complete!")
     print(f"Saved {len(df)} movies to enriched CSV")
