@@ -145,7 +145,14 @@ print(df[["Name", "Director", "Cast_1"]].head(10).to_string(index=False))
 # Save cleaned data in CSV format with proper encoding
 os.makedirs("data/02_processed", exist_ok=True)
 output_file = "data/02_processed/movies_2025_clean.csv"
-df.to_csv(output_file, index=False, encoding="utf-8-sig")
+try:
+    df.to_csv(output_file, index=False, encoding="utf-8-sig")
+except PermissionError:
+    print(
+        f"\nError: Cannot save {output_file} because the file is open or locked.\n"
+        "Close it in Excel, Power BI, VS Code preview, or any other app, then run this script again."
+    )
+    exit(1)
 
 print(f"\n Cleaned data saved to: {output_file}")
 print(f"Final dataset: {len(df)} movies")
