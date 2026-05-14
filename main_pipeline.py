@@ -80,7 +80,7 @@ if __name__ == "__main__":
     run_step("Clean Data", SCRIPTS_DIR / "02_clean_movies_data.py")
 
     # 3. Enrich. Without an API key, this copies cleaned data to the enriched folder.
-    run_step("Enrich with TMDb", SCRIPTS_DIR / "04_enrich_movies.py")
+    run_step("Enrich with TMDb", SCRIPTS_DIR / "03_enrich_movies.py")
 
     print("Pipeline Complete!", flush=True)
     print("Check data/03_enriched/movies_enriched_2025_hindi.csv", flush=True)
