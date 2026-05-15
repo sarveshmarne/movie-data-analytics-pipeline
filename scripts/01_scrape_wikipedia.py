@@ -2,12 +2,17 @@ import pandas as pd
 import os
 import requests
 import re
+import sys
+from io import StringIO
+from pathlib import Path
 
 # Pre-compile regex patterns for performance
 _MONTH_RE = re.compile(
-    r"\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b", flags=re.IGNORECASE
+    r"\b(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b",
+    flags=re.IGNORECASE,
 )
 
+ROOT_DIR = Path(__file__).resolve().parents[1]
 
 url = "https://en.wikipedia.org/wiki/List_of_Hindi_films_of_2025"
 
@@ -23,7 +28,7 @@ response = requests.get(url, headers=headers)
 response.raise_for_status()
 
 # Read tables from the HTML string
-tables = pd.read_html(response.text)
+tables = pd.read_html(StringIO(response.text))
 
 all_movies = []
 
@@ -95,9 +100,17 @@ df = df.dropna(subset=["Name"])
 df = df.drop_duplicates(subset=["Name"], keep="first")
 
 # Save raw data
-os.makedirs("data/01_raw", exist_ok=True)
-output_file = "data/01_raw/movies_2025_complete.csv"
-df.to_csv(output_file, index=False, encoding="utf-8-sig")
+output_dir = ROOT_DIR / "data" / "01_raw"
+os.makedirs(output_dir, exist_ok=True)
+output_file = output_dir / "movies_2025_complete.csv"
+try:
+    df.to_csv(output_file, index=False, encoding="utf-8-sig")
+except PermissionError:
+    print(
+        f"\nError: Cannot save {output_file} because the file is open or locked.\n"
+        "Close it in Excel, Power BI, VS Code preview, or any other app, then run this script again."
+    )
+    sys.exit(1)
 
 print("2025 Hindi movie scraping completed!")
 print(f"Found {len(df)} unique movies")
