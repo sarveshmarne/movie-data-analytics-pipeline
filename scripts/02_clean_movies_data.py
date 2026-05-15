@@ -45,12 +45,12 @@ def first_value(text):
     return parts[0] if parts else np.nan
 
 
-def separate_cast_names(cast_text):
-    """Separate concatenated cast names with proper spacing"""
-    if pd.isna(cast_text):
+def separate_people_names(text):
+    """Separate concatenated person names with commas."""
+    if pd.isna(text):
         return np.nan
 
-    text = str(cast_text).strip()
+    text = str(text).strip()
 
     # Add comma before capital letters that start new names
     text = _RE_CAMEL.sub(r"\1, \2", text)
@@ -94,17 +94,20 @@ print(df.head(10).to_string(index=False))
 df = df.copy()
 
 # Apply text cleaning to basic columns using vectorized .str accessor where possible
-basic_columns = ["Name", "Director", "Studio"]
+basic_columns = ["Name", "Studio"]
 for col in basic_columns:
     if col in df.columns:
         df[col] = df[col].apply(clean_text)
+
+if "Director" in df.columns:
+    df["Director"] = df["Director"].apply(separate_people_names).apply(clean_text)
 
 if "Studio" in df.columns:
     df["Studio"] = df["Studio"].apply(first_value)
 
 # Apply special cast cleaning to separate concatenated names
 if "Cast" in df.columns:
-    df["Cast"] = df["Cast"].apply(separate_cast_names).apply(clean_text)
+    df["Cast"] = df["Cast"].apply(separate_people_names).apply(clean_text)
 
 # Data quality filters
 print(f"\nBefore filtering: {len(df)} rows")
